@@ -198,6 +198,8 @@ void DeviceController::regGmailHandler()
     }else if(this->currentActivity() == COULD_NOT_SIGNIN){
         LOG << "[RegMailController]" << "Couldn't sign in";
         emit processFinished(this->currentExcuteStep(),1);
+    }else if(this->currentActivity() == CREATE_ACC_TASK){
+        LOG << "[RegMailController]" << "Do nothing when is creating acc task";
     }else{
         if(this->userInfo().captcha != ""){
             delay(10000);

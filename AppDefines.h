@@ -89,6 +89,7 @@ typedef struct birthday_struct{
 #define PAYMENT_SETTING_SCREEN  "com.android.vending/com.google.android.finsky.billing.promptforfop.SetupWizardPromptForFopActivity"
 #define COULD_NOT_SIGNIN        "com.google.android.gsf.login/com.google.android.gsf.login.ShowErrorActivity"
 #define TURNON_PLAY_PROTECT     "com.android.vending/com.google.android.finsky.verifier.impl.ConsentDialog"
+#define CREATE_ACC_TASK         "com.google.android.gsf.login/com.google.android.gsf.login.CreateAccountTask"
 
 #define UNKNOW_SCREEN           "UNKNOW_SCREEN"
 #define LOCK_SCREEN             "Keyguard"

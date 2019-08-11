@@ -95,7 +95,7 @@ void ADBCommand::tapScreen(QPoint point, QString deviceName)
     ADBCommand::adb_command(QString("input tap %1 %2").arg(point.x()).arg(point.y()),deviceName);
 }
 
-bool ADBCommand::findAndClick(cv::Mat iconImage, QString deviceName)
+bool ADBCommand::findAndClick(const cv::Mat &iconImage, QString deviceName)
 {
     cv::Mat screenImg = cv::imread(ADBCommand::screenShot(deviceName).toUtf8().constData(),1);
     while (screenImg.empty()){
@@ -111,7 +111,7 @@ bool ADBCommand::findAndClick(cv::Mat iconImage, QString deviceName)
     }
 }
 
-bool ADBCommand::findAnImageOnScreen(cv::Mat iconImg, QString deviceName)
+bool ADBCommand::findAnImageOnScreen(const cv::Mat &iconImg, QString deviceName)
 {
     cv::Mat screenImg = cv::imread(ADBCommand::screenShot(deviceName).toUtf8().constData(),1);
     while (screenImg.empty()){
