@@ -139,6 +139,10 @@ void DeviceController::regGmailHandler()
     {
         if(this->userInfo().captcha == ""){
             ADBCommand::requestShowAppDirectly(ACCOUNT_SETTING_ACT, this->deviceName());
+        }else{
+            delay(10000);
+            LOG << "Reg Gmail completed";
+            emit processFinished(this->currentExcuteStep(),EXITCODE_TRUE);
         }
     }else if(this->currentActivity() == ACCOUNT_SETTING_SCREEN){
         LOG << "Click google account Icon";
@@ -175,7 +179,7 @@ void DeviceController::regGmailHandler()
         LOG << "Getting captcher";
         this->userInfo().captcha = this->sendCaptcherScreen(ADBCommand::screenShot(this->deviceName()));
 
-        while (this->userInfo().captcha == "" && this->currentActivity() == AUTHENTICATING_SCREEN) {
+        while (this->userInfo().captcha == "") {
             this->userInfo().captcha = this->sendCaptcherScreen(ADBCommand::screenShot(this->deviceName()));
         }
 
@@ -186,17 +190,20 @@ void DeviceController::regGmailHandler()
         LOG << "Click Next Icon";
         ADBCommand::tapScreen(QPoint(942,1637),this->deviceName());
     }else if(this->currentActivity() == PAYMENT_SETTING_SCREEN){
-        //        if(!ADBCommand::findAndClick(SKIP_PAYMENT_ICON)){
-        //            LOG << "[RegMailController]" << "Couldn't click SKIP PAYMENT";
-        //            this->userInfo().captcha = "";
-        //            ADBCommand::goHomeScreen();
-        //        }
+        LOG << "Click Skip Icon";
+        ADBCommand::tapScreen(QPoint(135,1615),this->deviceName());
     }else if(this->currentActivity() == WIFI_PICKER_SCREEN){
         LOG << "[RegMailController]" << "Back when current screen is wifi setting";
         ADBCommand::pressBack(this->deviceName());
     }else if(this->currentActivity() == COULD_NOT_SIGNIN){
         LOG << "[RegMailController]" << "Couldn't sign in";
         emit processFinished(this->currentExcuteStep(),1);
+    }else{
+        if(this->userInfo().captcha != ""){
+            delay(10000);
+            LOG << "Reg Gmail completed";
+            emit processFinished(this->currentExcuteStep(),EXITCODE_TRUE);
+        }
     }
 }
 
@@ -368,10 +375,10 @@ void DeviceController::onCheckNotification()
 {
     QString notificationData = ADBCommand::readNotificationData(this->deviceName());
     if(this->currentExcuteStep() == AppEnums::E_EXCUTE_REG_GMAIL){
-        if(notificationData.contains("android.text=Finish setting up your new Google Account")){
+        /*if(notificationData.contains("android.text=Finish setting up your new Google Account")){
             LOG << "Reg Gmail completed";
             emit processFinished(this->currentExcuteStep(),EXITCODE_TRUE);
-        }else if(notificationData.contains("android.title=Account Action Required"))
+        }else */if(notificationData.contains("android.title=Account Action Required"))
         {
             LOG << "Reg Gmail failure";
             emit processFinished(this->currentExcuteStep(),EXITCODE_FALSE);
