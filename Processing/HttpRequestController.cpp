@@ -1,11 +1,16 @@
 #include "HttpRequestController.h"
 
-HttpRequestController* HttpRequestController::m_instance = nullptr;
 
 HttpRequestController::HttpRequestController(QObject *parent) : QObject(parent)
 {
     manager = new QNetworkAccessManager(this);
     connect(manager, SIGNAL(finished(QNetworkReply*)), &eventLoop, SLOT(quit()));
+}
+
+HttpRequestController::~HttpRequestController()
+{
+    LOG << "[HttpRequestController]";
+    delete manager;
 }
 
 QString HttpRequestController::sendHttpRequest(QString uploadUrl, QString photoPath)
@@ -72,16 +77,5 @@ QString HttpRequestController::sendHttpRequest(QString uploadUrl, QString photoP
     return retVal;
 }
 
-HttpRequestController *HttpRequestController::instance()
-{
-    if(m_instance == nullptr){
-        m_instance = new HttpRequestController();
-    }
-    return m_instance;
-}
 
-HttpRequestController::~HttpRequestController()
-{
-    LOG << "[HttpRequestController]";
-    delete manager;
-}
+

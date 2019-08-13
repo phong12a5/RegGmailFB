@@ -94,9 +94,9 @@ QString DeviceController::sendCaptcherScreen(QString screenPath)
 {
     QString captchaImg = ImageProcessing::extractCaptchaImage(screenPath);
     delay(1000);
-//    LOG << "[RegMailController]" << "captchaImg: " << captchaImg;
     if(captchaImg != QString("")){
-        return HttpRequestController::instance()->sendHttpRequest(QString("http://poster.de-captcher.com"),\
+        HttpRequestController httpRq;
+        return httpRq.sendHttpRequest(QString("http://poster.de-captcher.com"),\
                                                                   QDir::currentPath() + "/captcha.png");
     }else {
         return QString("");
@@ -140,13 +140,14 @@ void DeviceController::regGmailHandler()
         if(this->userInfo().captcha == ""){
             ADBCommand::requestShowAppDirectly(ACCOUNT_SETTING_ACT, this->deviceName());
         }else{
-            delay(10000);
+            delay(20000);
             LOG << "Reg Gmail completed";
             emit processFinished(this->currentExcuteStep(),EXITCODE_TRUE);
         }
     }else if(this->currentActivity() == ACCOUNT_SETTING_SCREEN){
         LOG << "Click google account Icon";
-        ADBCommand::tapScreen(QPoint(296,1091),this->deviceName());
+//        ADBCommand::tapScreen(QPoint(296,1091),this->deviceName());
+        ADBCommand::findAndClick(APP_MAIN->GOOGLE_ACCOUNT_ICON,this->deviceName());
     }else if(this->currentActivity() == ADD_A_GGACCOUNT_SCREEN){
         LOG << "Click add new account Icon";
         ADBCommand::tapScreen(QPoint(541,1658),this->deviceName());
@@ -202,7 +203,7 @@ void DeviceController::regGmailHandler()
         LOG << "[RegMailController]" << "Do nothing when is creating acc task";
     }else{
         if(this->userInfo().captcha != ""){
-            delay(10000);
+            delay(20000);
             LOG << "Reg Gmail completed";
             emit processFinished(this->currentExcuteStep(),EXITCODE_TRUE);
         }
@@ -417,7 +418,9 @@ void DeviceController::onCheckFBScreen()
         screenImage = cv::imread(ADBCommand::screenShot(this->deviceName()).toUtf8().constData(),1);
     }
 
-    QPoint point = ImageProcessing::findImageOnImage(APP_MAIN->SCREEN_MATHING_TABLE.value(static_cast<AppEnums::E_FBLITE_SCREEN_ID>(need2CheckedSCreen)),screenImage);
+    LOG << APP_MAIN->getMatchingImg2ScreenId(need2CheckedSCreen).rows;
+
+    QPoint point = ImageProcessing::findImageOnImage(APP_MAIN->getMatchingImg2ScreenId(need2CheckedSCreen),screenImage);
     if(!point.isNull()){
         this->setFbScreenId(need2CheckedSCreen);
     }

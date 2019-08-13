@@ -64,10 +64,8 @@ USER_INFOR AppMain::generateUserInfo()
 
     QStringList part2 = QStringList() << data.firstName.toLower() + "@"
                                       << data.lastName.toLower() + "@"
-                                      << (data.bodDate < 10? ("0" + QString::number(data.bodDate)) : QString::number(data.bodDate)) + data.firstName.toLower()
-                                      << (data.bodDate < 10? ("0" + QString::number(data.bodDate)) : QString::number(data.bodDate)) + data.lastName.toLower()
-                                      << (data.bodMonth < 10? ("0" + QString::number(data.bodMonth)) : QString::number(data.bodMonth)) + data.firstName.toLower()
-                                      << (data.bodMonth < 10? ("0" + QString::number(data.bodMonth)) : QString::number(data.bodMonth)) + data.lastName.toLower()
+                                      << data.firstName.toLower() + (data.bodDate < 10? ("0" + QString::number(data.bodDate)) : QString::number(data.bodDate))
+                                      << data.lastName.toLower()  + (data.bodDate < 10? ("0" + QString::number(data.bodDate)) : QString::number(data.bodDate))
                                       << data.firstName.toLower() + QString::number(rand()%90 + 10)
                                       << data.lastName.toLower() + QString::number(rand()%90 + 10);
 
@@ -78,6 +76,22 @@ USER_INFOR AppMain::generateUserInfo()
     data.fbPassword = data.gmailPassword;
     LOG << QString("Info: %1 | %2 | %3 | %4").arg(data.firstName).arg(data.lastName).arg(data.middleName).arg(data.fbPassword);
     return data;
+}
+
+const cv::Mat &AppMain::getMatchingImg2ScreenId(int screenID)
+{
+    switch (screenID) {
+    case AppEnums::E_FBLITE_SCREEN_ID_LOGIN:                return CREATE_NEW_FBACC_ICON;
+    case AppEnums::E_FBLITE_SCREEN_ID_JOIN_FB:              return JOIN_FB_TEXT;
+    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_NAME:           return WHAT_YOUR_NAME_TEXT;
+    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_MOBILE_NUM:     return ENTER_MOBILE_NUM_TEXT;
+    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_EMAIL_ADDRESS:  return ENTER_YOUR_EMAIL;
+    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_BIRTHDAY:       return WHAT_YOUR_BIRTHDAY;
+    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_GENDER:         return WHAT_YOUR_GENDER;
+    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_PASSWORD:       return CREATE_PASS_SCREEN;
+    case AppEnums::E_FBLITE_SCREEN_ID_SAVE_LOGIN_INFO:      return SAVE_LOGIN_TEXT;
+    case AppEnums::E_FBLITE_SCREEN_ID_WELCOME_SCREEN:       return WELCOME_SCREEN;
+    }
 }
 
 void AppMain::startProgram()

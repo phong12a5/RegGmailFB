@@ -10,17 +10,15 @@
 class HttpRequestController : public QObject
 {
     Q_OBJECT
-private:
+public:
     explicit HttpRequestController(QObject *parent = nullptr);
 
 public:
-    static HttpRequestController* instance();
     ~HttpRequestController();
 
     QString sendHttpRequest(QString, QString);
 
 private:
-    static HttpRequestController* m_instance;
     QNetworkAccessManager *manager;
     QEventLoop eventLoop;
 

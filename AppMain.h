@@ -44,6 +44,7 @@ public:
     void setDeviceList(QStringList _devices);
 
     USER_INFOR generateUserInfo();
+    const cv::Mat& getMatchingImg2ScreenId(int screenID);
 
     Q_INVOKABLE void startProgram();
     Q_INVOKABLE void closeProgram();
@@ -115,19 +116,6 @@ public:
     const cv::Mat KEYBOARD                = cv::imread(QString(QDir::currentPath() + "/IconImage/keyboard.png").toUtf8().constData());
     const cv::Mat WELCOME_SCREEN          = cv::imread(QString(QDir::currentPath() + "/IconImage/WelcomeScreen.png").toUtf8().constData());
     const cv::Mat OK_BUTTON               = cv::imread(QString(QDir::currentPath() + "/IconImage/OkButton.png").toUtf8().constData());
-
-    const QMap<AppEnums::E_FBLITE_SCREEN_ID, cv::Mat> SCREEN_MATHING_TABLE{
-        {AppEnums::E_FBLITE_SCREEN_ID_LOGIN,                CREATE_NEW_FBACC_ICON},
-        {AppEnums::E_FBLITE_SCREEN_ID_JOIN_FB,              JOIN_FB_TEXT},
-        {AppEnums::E_FBLITE_SCREEN_ID_ENTER_NAME,           WHAT_YOUR_NAME_TEXT},
-        {AppEnums::E_FBLITE_SCREEN_ID_ENTER_MOBILE_NUM,     ENTER_MOBILE_NUM_TEXT},
-        {AppEnums::E_FBLITE_SCREEN_ID_ENTER_EMAIL_ADDRESS,  ENTER_YOUR_EMAIL},
-        {AppEnums::E_FBLITE_SCREEN_ID_ENTER_BIRTHDAY,       WHAT_YOUR_BIRTHDAY},
-        {AppEnums::E_FBLITE_SCREEN_ID_ENTER_GENDER,         WHAT_YOUR_GENDER},
-        {AppEnums::E_FBLITE_SCREEN_ID_ENTER_PASSWORD,       CREATE_PASS_SCREEN},
-        {AppEnums::E_FBLITE_SCREEN_ID_SAVE_LOGIN_INFO,      SAVE_LOGIN_TEXT},
-        {AppEnums::E_FBLITE_SCREEN_ID_WELCOME_SCREEN,       WELCOME_SCREEN},
-    };
 };
 
 #endif // APPMAIN_H
