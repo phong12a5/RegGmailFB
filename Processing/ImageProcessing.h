@@ -23,7 +23,7 @@ public:
 
 public:
     static QPoint findImageOnImage(const cv::Mat &_smallImage, const cv::Mat &_largeImage);
-    static QString extractCaptchaImage(const QString& path);
+    static QString extractCaptchaImage(const QString& path, const QString deviceName);
 
 signals:
 

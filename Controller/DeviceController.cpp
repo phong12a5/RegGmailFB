@@ -88,13 +88,13 @@ void DeviceController::setFbScreenId(int screenId)
         LOG << screenId;
         m_fbScreenId = screenId;
 
-        m_keepFbSrcCheckerTimer->stop();
         if(m_keepFbSrcCheckerTimer == nullptr){
             m_keepFbSrcCheckerTimer = new QTimer(this);
             m_keepFbSrcCheckerTimer->setSingleShot(false);
             m_keepFbSrcCheckerTimer->setInterval(KEEP_FB_SCREEN_TIMEOUT);
             connect(m_keepFbSrcCheckerTimer, SIGNAL(timeout()), this, SLOT(onKeepFbScreenTimeout()));
         }
+        m_keepFbSrcCheckerTimer->stop();
         m_keepFbSrcCheckerTimer->start();
 
         emit fbScreenIdChanged();

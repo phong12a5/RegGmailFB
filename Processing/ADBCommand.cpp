@@ -92,17 +92,23 @@ void ADBCommand::killSpecificApp(QString packageName,QString deviceName)
 
 void ADBCommand::tapScreen(QPoint point, QString deviceName)
 {
+    LOG << "Tapping << " << point;
     ADBCommand::adb_command(QString("input tap %1 %2").arg(point.x()).arg(point.y()),deviceName);
 }
 
-bool ADBCommand::findAndClick(const cv::Mat &iconImage, QString deviceName)
+bool ADBCommand::findAndClick(QString iconImage, QString deviceName)
 {
     cv::Mat screenImg = cv::imread(ADBCommand::screenShot(deviceName).toUtf8().constData(),1);
     while (screenImg.empty()){
         screenImg = cv::imread(ADBCommand::screenShot(deviceName).toUtf8().constData(),1);
     }
 
-    QPoint point = ImageProcessing::findImageOnImage(iconImage,screenImg);
+    cv::Mat iconMat = cv::imread(iconImage.toUtf8().constData(),1);
+    while (iconMat.empty()){
+        iconMat = cv::imread(iconImage.toUtf8().constData(),1);
+    }
+
+    QPoint point = ImageProcessing::findImageOnImage(iconMat,screenImg);
     if(!point.isNull()){
         ADBCommand::tapScreen(point,deviceName);
         return true;
@@ -118,7 +124,9 @@ bool ADBCommand::findAnImageOnScreen(const cv::Mat &iconImg, QString deviceName)
         screenImg = cv::imread(ADBCommand::screenShot(deviceName).toUtf8().constData(),1);
     }
 
+    LOG << iconImg.rows;
     QPoint point = ImageProcessing::findImageOnImage(iconImg,screenImg);
+    LOG << iconImg.rows;
     if(!point.isNull()){
         return true;
     }else{

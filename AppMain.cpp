@@ -1,6 +1,7 @@
 #include "AppMain.h"
 
 AppMain* AppMain::m_instance = nullptr;
+#include <QMutex>
 
 AppMain::AppMain(QObject *parent) : QObject(parent)
 {
@@ -15,9 +16,12 @@ AppMain::AppMain(QObject *parent) : QObject(parent)
 
 AppMain *AppMain::instance()
 {
+    QMutex mutex;
+    mutex.lock();
     if(m_instance == nullptr){
         m_instance = new AppMain();
     }
+    mutex.unlock();
     return m_instance;
 }
 
@@ -36,13 +40,12 @@ void AppMain::setDeviceList(QStringList _devices)
 
 USER_INFOR AppMain::generateUserInfo()
 {
-    srand(time(nullptr));
-
     USER_INFOR data;
-    if(m_lastNameList.isEmpty() || m_firstNameList.isEmpty() ||  m_middleNameList.isEmpty()){
+
+    if(m_lastNameList.isEmpty() || m_firstNameList.isEmpty()){
         LOG << "There is no data";
         return data;
-    }    
+    }
 
     /* Generate Birth of date */
     data.bodDate = rand()%28 + 0;
@@ -53,44 +56,54 @@ USER_INFOR AppMain::generateUserInfo()
 
     data.firstName = m_firstNameList.at(rand() % (m_firstNameList.length()));
     data.lastName = m_lastNameList.at(rand() % (m_lastNameList.length()));
-    data.middleName = m_middleNameList.at(rand() % (m_middleNameList.length()));
+//    data.middleName = m_middleNameList.at(rand() % (m_middleNameList.length()));
 
     data.userName = data.firstName + data.lastName +  QString::number(rand() % 1000000000 + 3000000);
     data.sex = data.middleName == "Thi"? "F" : "M";
     data.captcha = "";
 
-    QStringList part1 = QStringList() << data.firstName << data.lastName
-                                      << data.firstName.toLower() << data.lastName.toLower();
+    QString adcString = "abcdefghijklmnopqrstuvwxyz";
 
-    QStringList part2 = QStringList() << data.firstName.toLower() + "@"
-                                      << data.lastName.toLower() + "@"
-                                      << data.firstName.toLower() + (data.bodDate < 10? ("0" + QString::number(data.bodDate)) : QString::number(data.bodDate))
-                                      << data.lastName.toLower()  + (data.bodDate < 10? ("0" + QString::number(data.bodDate)) : QString::number(data.bodDate))
-                                      << data.firstName.toLower() + QString::number(rand()%90 + 10)
-                                      << data.lastName.toLower() + QString::number(rand()%90 + 10);
+    data.gmailPassword = QString(adcString.at(rand()%adcString.length()).toUpper()) +\
+            adcString.at(rand()%adcString.length()) +
+            adcString.at(rand()%adcString.length()) +
+            adcString.at(rand()%adcString.length()) +
+            QString::number(rand()%10) +
+            QString::number(rand()%10) +
+            QString::number(rand()%10) +
+            QString::number(rand()%10) +
+            QString::number(rand()%10);
 
-    QStringList part3 = QStringList() << QString::number(data.bodYear)
-                                      << QString::number(data.bodYear%100) + QString::number(data.bodYear%100);
-
-    data.gmailPassword = part1.at(rand()%part1.length()) + part2.at(rand()%part2.length()) + part3.at(rand()%part3.length());
     data.fbPassword = data.gmailPassword;
-    LOG << QString("Info: %1 | %2 | %3 | %4").arg(data.firstName).arg(data.lastName).arg(data.middleName).arg(data.fbPassword);
+    LOG << QString("Info: %1 | %2 | %3 | %4").arg(data.firstName).arg(data.lastName).arg(data.userName).arg(data.fbPassword);
     return data;
 }
 
-const cv::Mat &AppMain::getMatchingImg2ScreenId(int screenID)
+QString AppMain::getMatchingImg2ScreenId(int screenID)
 {
     switch (screenID) {
-    case AppEnums::E_FBLITE_SCREEN_ID_LOGIN:                return CREATE_NEW_FBACC_ICON;
-    case AppEnums::E_FBLITE_SCREEN_ID_JOIN_FB:              return JOIN_FB_TEXT;
-    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_NAME:           return WHAT_YOUR_NAME_TEXT;
-    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_MOBILE_NUM:     return ENTER_MOBILE_NUM_TEXT;
-    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_EMAIL_ADDRESS:  return ENTER_YOUR_EMAIL;
-    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_BIRTHDAY:       return WHAT_YOUR_BIRTHDAY;
-    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_GENDER:         return WHAT_YOUR_GENDER;
-    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_PASSWORD:       return CREATE_PASS_SCREEN;
-    case AppEnums::E_FBLITE_SCREEN_ID_SAVE_LOGIN_INFO:      return SAVE_LOGIN_TEXT;
-    case AppEnums::E_FBLITE_SCREEN_ID_WELCOME_SCREEN:       return WELCOME_SCREEN;
+    case AppEnums::E_FBLITE_SCREEN_ID_LOGIN:
+        return CREATE_NEW_FBACC_ICON;
+    case AppEnums::E_FBLITE_SCREEN_ID_JOIN_FB:
+        return JOIN_FB_TEXT;
+    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_NAME:
+        return WHAT_YOUR_NAME_TEXT;
+    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_MOBILE_NUM:
+        return ENTER_MOBILE_NUM_TEXT;
+    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_EMAIL_ADDRESS:
+        return ENTER_YOUR_EMAIL;
+    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_BIRTHDAY:
+        return WHAT_YOUR_BIRTHDAY;
+    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_GENDER:
+        return WHAT_YOUR_GENDER;
+    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_PASSWORD:
+        return CREATE_PASS_SCREEN;
+    case AppEnums::E_FBLITE_SCREEN_ID_SAVE_LOGIN_INFO:
+        return SAVE_LOGIN_TEXT;
+    case AppEnums::E_FBLITE_SCREEN_ID_WELCOME_SCREEN:
+        return WELCOME_SCREEN;
+    default:
+        return "";
     }
 }
 
@@ -122,9 +135,10 @@ void AppMain::initApplication()
         QString device = this->deviceList().at(i);
         DeviceController* _ctrlPtr = new DeviceController(device);
         QThread* _thread = new QThread(this);
-
+        _ctrlPtr->setUserInfo(this->generateUserInfo());
         _ctrlPtr->moveToThread(_thread);
         QObject::connect(this,&AppMain::oparate,_ctrlPtr,&DeviceController::doWork);
+        QObject::connect(_ctrlPtr,&DeviceController::missionCompleted,this,&AppMain::onMissionCompleted);
         QObject::connect(_thread, &QThread::finished, _ctrlPtr, &QObject::deleteLater);
 
         m_deviceCtrlList << _ctrlPtr;
@@ -146,8 +160,7 @@ void AppMain::initApplication()
 void AppMain::loadUserInfo()
 {
     m_lastNameList << "Tran" << "Dang" << "Hoang" << "Nguyen" << "Vu" << "Cao" << "Phung" << "Le" << "Dao" << "Chau" << "Que" << "Vo";
-    m_firstNameList << "Phong" << "Thuy" << "Linh" << "Ngoc" << "Khanh" << "Hung" << "Tuan" << "Thanh" << "Anh" << "Nguyet";
-    m_middleNameList << "Thi" << "Ba" << "Hoang" << "Tung" << "Thi" << "Thi" << "Khanh" << "Thi" << "Ngoc" << "Dinh" << "Thanh" << "Thi";
+    m_firstNameList << "Trang" << "Chau" << "Thi" << "Ba" << "Hoang" << "Tung" << "Thi" << "Thi" << "Khanh" << "Ngoc" << "Dinh" << "Thanh";
 }
 
 void AppMain::onUpdateCurrentActOnDevices(QStringList activities)
@@ -161,38 +174,26 @@ void AppMain::onUpdateCurrentActOnDevices(QStringList activities)
     }
 }
 
-//void AppMain::onProcessFinished(int currentStep, int exitCode)
-//{
-//    LOG << "[AppMain]" << "currentStep: " << (currentStep == 0? "CHANGE DEVICE" : (currentStep == 1? "REG GMAIL" : "REG FACEBOOK")) << " --- exitCode: " << exitCode;
-//    if(exitCode == 1){
-//        LOG << "[AppMain]" << "Process incompleted! -> Restart process";
-//        this->setCurrentExcuteStep(AppEnums::E_EXCUTE_CHANGE_INFO);
-//        this->restartProgram();
-//    }else if(exitCode == 0 ){
-//        if(currentStep == AppEnums::E_EXCUTE_CHANGE_INFO){
-//            this->setCurrentExcuteStep(AppEnums::E_EXCUTE_REG_GMAIL);
-//            LOG << "[AppMain]" << "Change infor device completed -> Reboot device!!!";
-//            ADBCommand::rebootDevice();
-//        }else if(currentStep == AppEnums::E_EXCUTE_REG_GMAIL){
-//            REG_FBACC_CTR->setUserInfo(REG_MAIL_CTR->getEmailInfor());
-//            LOG << "[AppMain]" << "Reg gmail completed! -> Start reg facebook";
-//            if(APP_MODEL->regFacebookOption()){
-//                this->setCurrentExcuteStep(AppEnums::E_EXCUTE_REG_FACBOOK);
-//                if(this->getCurrentActivity() == HOME_SCREEN){
-//                    emit this-> currentActivityChanged();
-//                }else{
-//                    ADBCommand::goHomeScreen();
-//                }
-//            }else{
-//                REG_MAIL_CTR->saveEmailToOutput();
-//                this->setCurrentExcuteStep(AppEnums::E_EXCUTE_CHANGE_INFO);
-//                this->restartProgram();
-//            }
-//        }else if(currentStep == AppEnums::E_EXCUTE_REG_FACBOOK){
-//            REG_MAIL_CTR->saveEmailToOutput();
-//            LOG << "[AppMain]" << "Process completed! -> Restart process";
-//            this->setCurrentExcuteStep(AppEnums::E_EXCUTE_CHANGE_INFO);
-//            this->restartProgram();
-//        }
-//    }
-//}
+void AppMain::onMissionCompleted(int exitCode, QString deviceName)
+{
+    LOG << deviceName << " : " << exitCode;
+
+    if(exitCode == EXITCODE_TRUE){
+
+        // ------------- Save output --------- //
+        LOG << "[RegMailController]";
+        QFile outputFile(OUTPUT_FILE);
+
+        if (!outputFile.open(QIODevice::WriteOnly | QIODevice::Append)) {
+            LOG << "[RegMailController]" << "Couldn't open output file";
+            return;
+        }
+
+        QTextStream out(&outputFile);
+        USER_INFOR data = m_deviceCtrlList.at(this->deviceList().indexOf(deviceName))->userInfo();
+        out << data.userName + "@gmail.com|" + data.gmailPassword << "|" << data.fbPassword <<  "\n";
+        outputFile.close();
+    }
+
+    m_deviceCtrlList.at(this->deviceList().indexOf(deviceName))->setUserInfo(this->generateUserInfo());
+}

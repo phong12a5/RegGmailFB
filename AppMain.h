@@ -44,7 +44,8 @@ public:
     void setDeviceList(QStringList _devices);
 
     USER_INFOR generateUserInfo();
-    const cv::Mat& getMatchingImg2ScreenId(int screenID);
+
+    QString getMatchingImg2ScreenId(int screenID);
 
     Q_INVOKABLE void startProgram();
     Q_INVOKABLE void closeProgram();
@@ -71,51 +72,8 @@ signals:
 
 public slots:
     void onUpdateCurrentActOnDevices(QStringList activities);
-//    void onProcessFinished(int currentStep, int exitCode);
+    void onMissionCompleted(int exitCode, QString deviceName);
 
-public:
-    // GOOGLE SETTING icons
-    const cv::Mat AUTO_CHANGE_ICON        = cv::imread(QString(QDir::currentPath() + "/IconImage/autoChangeBtn.png").toUtf8().constData());
-    const cv::Mat GOOGLE_ACCOUNT_ICON     = cv::imread(QString(QDir::currentPath() + "/IconImage/googleAccIcon.png").toUtf8().constData());
-    const cv::Mat ADD_NEW_ACC_ICON        = cv::imread(QString(QDir::currentPath() + "/IconImage/addNewAccIcon.png").toUtf8().constData());
-    const cv::Mat NEXT_YOURNAME_ICON      = cv::imread(QString(QDir::currentPath() + "/IconImage/NextYourNameIcon.png").toUtf8().constData());
-    const cv::Mat NOT_NOW_ICON            = cv::imread(QString(QDir::currentPath() + "/IconImage/notNowIcon.png").toUtf8().constData());
-    const cv::Mat ACCEPT_BY_ME_ICON       = cv::imread(QString(QDir::currentPath() + "/IconImage/acceptByMe.png").toUtf8().constData());
-    const cv::Mat SKIP_PAYMENT_ICON       = cv::imread(QString(QDir::currentPath() + "/IconImage/skipPaymentIcon.png").toUtf8().constData());
-
-    // FACEBOOK LITE icons
-    const cv::Mat CREATE_NEW_FBACC_ICON   = cv::imread(QString(QDir::currentPath() + "/IconImage/createNewAccIcon.png").toUtf8().constData());
-    const cv::Mat JOIN_FB_TEXT            = cv::imread(QString(QDir::currentPath() + "/IconImage/JoinFBText.png").toUtf8().constData());
-    const cv::Mat NEXT_BUTTON             = cv::imread(QString(QDir::currentPath() + "/IconImage/nextBtn.png").toUtf8().constData());
-    const cv::Mat WHAT_YOUR_NAME_TEXT     = cv::imread(QString(QDir::currentPath() + "/IconImage/InputNameScr.png").toUtf8().constData());
-    const cv::Mat FIRSTNAME_FIELD         = cv::imread(QString(QDir::currentPath() + "/IconImage/FirstNameField.png").toUtf8().constData());
-    const cv::Mat LASTNAME_FIELD          = cv::imread(QString(QDir::currentPath() + "/IconImage/LastNameField.png").toUtf8().constData());
-    const cv::Mat ENTER_MOBILE_NUM_TEXT   = cv::imread(QString(QDir::currentPath() + "/IconImage/enterMobileNumberScr.png").toUtf8().constData());
-    const cv::Mat WHAT_YOUR_BIRTHDAY      = cv::imread(QString(QDir::currentPath() + "/IconImage/whatYourBirthdayScr.png").toUtf8().constData());
-    const cv::Mat WHAT_YOUR_GENDER        = cv::imread(QString(QDir::currentPath() + "/IconImage/whatYourGender.png").toUtf8().constData());
-    const cv::Mat FEMALE_BUTTON           = cv::imread(QString(QDir::currentPath() + "/IconImage/femaleIcon.png").toUtf8().constData());
-    const cv::Mat MALE_BUTTON             = cv::imread(QString(QDir::currentPath() + "/IconImage/maleIcon.png").toUtf8().constData());
-    const cv::Mat CREATE_PASS_SCREEN      = cv::imread(QString(QDir::currentPath() + "/IconImage/createPassWord.png").toUtf8().constData());
-    const cv::Mat PASSWORD_FIELD          = cv::imread(QString(QDir::currentPath() + "/IconImage/passwordField.png").toUtf8().constData());
-    const cv::Mat SIGN_UP_BUTTON          = cv::imread(QString(QDir::currentPath() + "/IconImage/signUpBtn.png").toUtf8().constData());
-    const cv::Mat SAVE_LOGIN_TEXT         = cv::imread(QString(QDir::currentPath() + "/IconImage/saveLoginInfo.png").toUtf8().constData());
-    const cv::Mat NOT_NOW_BUTTON          = cv::imread(QString(QDir::currentPath() + "/IconImage/notNowBtn.png").toUtf8().constData());
-    const cv::Mat ADD_YOUR_EMAIL          = cv::imread(QString(QDir::currentPath() + "/IconImage/addYourEmail.png").toUtf8().constData());
-    const cv::Mat GAMIL_RADIO_BTN         = cv::imread(QString(QDir::currentPath() + "/IconImage/gmailRadioButton.png").toUtf8().constData());
-    const cv::Mat YES_BTN                 = cv::imread(QString(QDir::currentPath() + "/IconImage/yesButton.png").toUtf8().constData());
-    const cv::Mat CONFIRM_EMAIL           = cv::imread(QString(QDir::currentPath() + "/IconImage/confirmEmail.png").toUtf8().constData());
-    const cv::Mat SKIP_BUTTON             = cv::imread(QString(QDir::currentPath() + "/IconImage/skipButton.png").toUtf8().constData());
-    const cv::Mat ADD_A_PICTURE           = cv::imread(QString(QDir::currentPath() + "/IconImage/chooseFromGallery.png").toUtf8().constData());
-    const cv::Mat TURN_ON_FIND_FRIEND     = cv::imread(QString(QDir::currentPath() + "/IconImage/turnOnFindFriendScr.png").toUtf8().constData());
-    const cv::Mat SIGN_UP_WITH_EMAIL      = cv::imread(QString(QDir::currentPath() + "/IconImage/setupWithEmail.png").toUtf8().constData());
-    const cv::Mat ENTER_YOUR_EMAIL        = cv::imread(QString(QDir::currentPath() + "/IconImage/enterYourEmail.png").toUtf8().constData());
-    const cv::Mat SKIP_FIND_FRIEND        = cv::imread(QString(QDir::currentPath() + "/IconImage/skipFindFriend.png").toUtf8().constData());
-    const cv::Mat PROFILE_ICON            = cv::imread(QString(QDir::currentPath() + "/IconImage/profileIcon.png").toUtf8().constData());
-    const cv::Mat CHECK_POINT_SCREEN      = cv::imread(QString(QDir::currentPath() + "/IconImage/checkPointScreen.png").toUtf8().constData());
-    const cv::Mat BIRTH_DAY_FIELD         = cv::imread(QString(QDir::currentPath() + "/IconImage/birdayInputField.png").toUtf8().constData());
-    const cv::Mat KEYBOARD                = cv::imread(QString(QDir::currentPath() + "/IconImage/keyboard.png").toUtf8().constData());
-    const cv::Mat WELCOME_SCREEN          = cv::imread(QString(QDir::currentPath() + "/IconImage/WelcomeScreen.png").toUtf8().constData());
-    const cv::Mat OK_BUTTON               = cv::imread(QString(QDir::currentPath() + "/IconImage/OkButton.png").toUtf8().constData());
 };
 
 #endif // APPMAIN_H

@@ -26,7 +26,7 @@ public:
     static void rebootDevice(QString deviceName);
     static QString currentActivity(QString deviceName);
     static void killSpecificApp(QString packageName,QString deviceName);
-    static bool findAndClick(const cv::Mat &iconImage, QString deviceName);
+    static bool findAndClick(QString iconImage, QString deviceName);
     static bool findAnImageOnScreen(const cv::Mat &iconImg, QString deviceName);
     static void wakeUpScreen(QString deviceName);
     static void clearCacheOfPackage(QString packagName,QString deviceName);

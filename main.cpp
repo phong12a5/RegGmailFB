@@ -7,6 +7,8 @@ int main(int argc, char *argv[])
     LOG << "STARTING ....";
     LOG << "CURRENT DIR: " << QDir::currentPath();
 
+    srand(time(nullptr));
+
     QGuiApplication app(argc, argv);
     QQmlApplicationEngine engine;
 

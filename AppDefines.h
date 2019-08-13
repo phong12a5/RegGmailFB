@@ -4,7 +4,7 @@
 #include <QDebug>
 #include <QTest>
 #include <AppEnums.h>
-#include <QMap>
+#include <QDir>
 
 typedef struct user_infor{
     QString firstName;
@@ -33,6 +33,20 @@ typedef struct user_infor{
        captcha = "";
     }
 
+    void clear(){
+        firstName = "";
+        lastName = "";
+        userName = "";
+        middleName = "";
+        bodYear = 1994;
+        bodMonth = 7;
+        bodDate = 1;
+        sex = "M";
+        gmailPassword = "";
+        fbPassword = "";
+        captcha = "";
+    }
+
 } USER_INFOR;
 
 typedef struct birthday_struct{
@@ -59,7 +73,7 @@ typedef struct birthday_struct{
 #define LAST_NAME_FILE          QDir::currentPath()+"/lastname.txt"
 #define MIDDLE_NAME_FILE        QDir::currentPath()+"/middlename.txt"
 
-#define OUTPUT_FILE             QDir::currentPath()+"/emailList.txt"
+#define OUTPUT_FILE             QDir::currentPath()+"/outputData.txt"
 
 #define ACCOUNT_SETTING_ACT     "android.settings.ADD_ACCOUNT_SETTINGS"
 
@@ -90,6 +104,7 @@ typedef struct birthday_struct{
 #define COULD_NOT_SIGNIN        "com.google.android.gsf.login/com.google.android.gsf.login.ShowErrorActivity"
 #define TURNON_PLAY_PROTECT     "com.android.vending/com.google.android.finsky.verifier.impl.ConsentDialog"
 #define CREATE_ACC_TASK         "com.google.android.gsf.login/com.google.android.gsf.login.CreateAccountTask"
+#define INVALID_USERNAME        "com.google.android.gsf.login/com.google.android.gsf.login.SuggestUsernameActivity"
 
 #define UNKNOW_SCREEN           "UNKNOW_SCREEN"
 #define LOCK_SCREEN             "Keyguard"
@@ -117,23 +132,51 @@ typedef struct birthday_struct{
 #define EXITCODE_FALSE          1
 #define EXITCODE_TRUE           0
 
-//extern QMap<AppEnums::E_FBLITE_SCREEN_ID, cv::Mat> SCREEN_MATHING_TABLE;/*{
-//    {AppEnums::E_FBLITE_SCREEN_ID_LOGIN,                CREATE_NEW_FBACC_ICON},
-//    {AppEnums::E_FBLITE_SCREEN_ID_JOIN_FB,              JOIN_FB_TEXT},
-//    {AppEnums::E_FBLITE_SCREEN_ID_ENTER_NAME,           WHAT_YOUR_NAME_TEXT},
-//    {AppEnums::E_FBLITE_SCREEN_ID_ENTER_MOBILE_NUM,     ENTER_MOBILE_NUM_TEXT},
-//    {AppEnums::E_FBLITE_SCREEN_ID_ENTER_EMAIL_ADDRESS,  ENTER_YOUR_EMAIL},
-//    {AppEnums::E_FBLITE_SCREEN_ID_ENTER_BIRTHDAY,       WHAT_YOUR_BIRTHDAY},
-//    {AppEnums::E_FBLITE_SCREEN_ID_ENTER_GENDER,         WHAT_YOUR_GENDER},
-//    {AppEnums::E_FBLITE_SCREEN_ID_ENTER_PASSWORD,       CREATE_PASS_SCREEN},
-//    {AppEnums::E_FBLITE_SCREEN_ID_SAVE_LOGIN_INFO,      SAVE_LOGIN_TEXT},
-//    {AppEnums::E_FBLITE_SCREEN_ID_WELCOME_SCREEN,       WELCOME_SCREEN},
-//    {AppEnums::E_FBLITE_SCREEN_ID_CONFIRM_EMAIL,        "STR_SETUP_SYSTEM_INFO"},
-//    {AppEnums::E_FBLITE_SCREEN_ID_ADD_PIC_PROFILE,      "STR_SETUP_SYSTEM_INFO"},
-//    {AppEnums::E_FBLITE_SCREEN_ID_FIND_FRIENDS,         "STR_SETUP_SYSTEM_INFO"},
-//    {AppEnums::E_FBLITE_SCREEN_ID_NEW_FEEDS,            "STR_SETUP_SYSTEM_INFO"},
-//    {AppEnums::E_FBLITE_SCREEN_ID_CHECK_POINT,          "STR_SETUP_SYSTEM_INFO"}
-//};*/
+#define KEEP_FB_SCREEN_TIMEOUT  30000
+
+
+// GOOGLE SETTING icons
+#define AUTO_CHANGE_ICON        QDir::currentPath() + "/IconImage/autoChangeBtn.png"
+#define GOOGLE_ACCOUNT_ICON     QDir::currentPath() + "/IconImage/googleAccIcon.png"
+#define ADD_NEW_ACC_ICON        QDir::currentPath() + "/IconImage/addNewAccIcon.png"
+#define NEXT_YOURNAME_ICON      QDir::currentPath() + "/IconImage/NextYourNameIcon.png"
+#define NOT_NOW_ICON            QDir::currentPath() + "/IconImage/notNowIcon.png"
+#define ACCEPT_BY_ME_ICON       QDir::currentPath() + "/IconImage/acceptByMe.png"
+#define SKIP_PAYMENT_ICON       QDir::currentPath() + "/IconImage/skipPaymentIcon.png"
+
+// FACEBOOK LITE icons
+#define CREATE_NEW_FBACC_ICON   QDir::currentPath() + "/IconImage/createNewAccIcon.png"
+#define JOIN_FB_TEXT            QDir::currentPath() + "/IconImage/JoinFBText.png"
+#define NEXT_BUTTON             QDir::currentPath() + "/IconImage/nextBtn.png"
+#define WHAT_YOUR_NAME_TEXT     QDir::currentPath() + "/IconImage/InputNameScr.png"
+#define FIRSTNAME_FIELD         QDir::currentPath() + "/IconImage/FirstNameField.png"
+#define LASTNAME_FIELD          QDir::currentPath() + "/IconImage/LastNameField.png"
+#define ENTER_MOBILE_NUM_TEXT   QDir::currentPath() + "/IconImage/enterMobileNumberScr.png"
+#define WHAT_YOUR_BIRTHDAY      QDir::currentPath() + "/IconImage/whatYourBirthdayScr.png"
+#define WHAT_YOUR_GENDER        QDir::currentPath() + "/IconImage/whatYourGender.png"
+#define FEMALE_BUTTON           QDir::currentPath() + "/IconImage/femaleIcon.png"
+#define MALE_BUTTON             QDir::currentPath() + "/IconImage/maleIcon.png"
+#define CREATE_PASS_SCREEN      QDir::currentPath() + "/IconImage/createPassWord.png"
+#define PASSWORD_FIELD          QDir::currentPath() + "/IconImage/passwordField.png"
+#define SIGN_UP_BUTTON          QDir::currentPath() + "/IconImage/signUpBtn.png"
+#define SAVE_LOGIN_TEXT         QDir::currentPath() + "/IconImage/saveLoginInfo.png"
+#define NOT_NOW_BUTTON          QDir::currentPath() + "/IconImage/notNowBtn.png"
+#define ADD_YOUR_EMAIL          QDir::currentPath() + "/IconImage/addYourEmail.png"
+#define GAMIL_RADIO_BTN         QDir::currentPath() + "/IconImage/gmailRadioButton.png"
+#define YES_BTN                 QDir::currentPath() + "/IconImage/yesButton.png"
+#define CONFIRM_EMAIL           QDir::currentPath() + "/IconImage/confirmEmail.png"
+#define SKIP_BUTTON             QDir::currentPath() + "/IconImage/skipButton.png"
+#define ADD_A_PICTURE           QDir::currentPath() + "/IconImage/chooseFromGallery.png"
+#define TURN_ON_FIND_FRIEND     QDir::currentPath() + "/IconImage/turnOnFindFriendScr.png"
+#define SIGN_UP_WITH_EMAIL      QDir::currentPath() + "/IconImage/setupWithEmail.png"
+#define ENTER_YOUR_EMAIL        QDir::currentPath() + "/IconImage/enterYourEmail.png"
+#define SKIP_FIND_FRIEND        QDir::currentPath() + "/IconImage/skipFindFriend.png"
+#define PROFILE_ICON            QDir::currentPath() + "/IconImage/profileIcon.png"
+#define CHECK_POINT_SCREEN      QDir::currentPath() + "/IconImage/checkPointScreen.png"
+#define BIRTH_DAY_FIELD         QDir::currentPath() + "/IconImage/birdayInputField.png"
+#define KEYBOARD                QDir::currentPath() + "/IconImage/keyboard.png"
+#define WELCOME_SCREEN          QDir::currentPath() + "/IconImage/WelcomeScreen.png"
+#define OK_BUTTON               QDir::currentPath() + "/IconImage/OkButton.png"
 
 #endif // APPDEFINES_H
 

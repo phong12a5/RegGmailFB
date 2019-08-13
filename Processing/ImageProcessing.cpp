@@ -16,7 +16,7 @@ QPoint ImageProcessing::findImageOnImage(const cv::Mat &_smallImage, const cv::M
         //kiểm tra kích cỡ của ảnh input & template
         if (_smallImage.rows > _largeImage.rows || _smallImage.cols > _largeImage.cols)
         {
-            LOG << "[ImageProcessing]" << "Mat template must be smaller than matInput";
+            LOG << "[ImageProcessing]" << "Mat template must be smaller than matInput: [" << _smallImage.rows << "," << _smallImage.cols << "]";
             return retVal;
         }else if(_smallImage.rows <= 0 || _smallImage.cols <= 0){
             LOG << "[ImageProcessing]" << "_smallImage: Invalid Image";
@@ -38,34 +38,37 @@ QPoint ImageProcessing::findImageOnImage(const cv::Mat &_smallImage, const cv::M
         double threshold = 0.8;
         cv::threshold(result, result, threshold, 1., CV_THRESH_TOZERO);
         double minval, maxval;
-        double bestMaxval = 0;
+//        double bestMaxval = 0;
         //ngưỡng chính xác, giảm xuống thì sẽ tìm được nhiều đối tượng hơn nhưng sai số nhiều hơn
 
-        while (true)
-        {
+//        while (true)
+//        {
             cv::Point minloc, maxloc;
             cv::minMaxLoc(result, &minval, &maxval, &minloc, &maxloc);
 
-            if (maxval > threshold)
-            {
+//            matchLoc = maxLoc;
+//            if (maxval > threshold)
+//            {
                 //vẽ hình chữ nhật lên đối tượng tìm được
-                if(maxval > bestMaxval){
-                    bestMaxval = maxval;
-                    retVal = QPoint(maxloc.x + _smallImage.cols/2, maxloc.y + _smallImage.rows/2);
-                }
-                cv::floodFill(result, maxloc, cv::Scalar(0), 0, cv::Scalar(.1), cv::Scalar(1.));
-
+//                if(maxval > bestMaxval){
+//                    bestMaxval = maxval;
+            if(maxval > threshold){
+                retVal = QPoint(maxloc.x + _smallImage.cols/2, maxloc.y + _smallImage.rows/2);
             }
-            else
-                break;
-        }
+//                }
+//                cv::floodFill(result, maxloc, cv::Scalar(0), 0, cv::Scalar(.1), cv::Scalar(1.));
+
+//            }
+//            else
+//                break;
+//        }
 
     //    LOG << "[ImageProcessing]" << "Return values: " << retVal << " --- bestMaxVal: " << bestMaxval;
     #endif
         return retVal;
 }
 
-QString ImageProcessing::extractCaptchaImage(const QString &path)
+QString ImageProcessing::extractCaptchaImage(const QString &path, const QString deviceName)
 {
     LOG << "[ImageProcessing]" << "Path: " << path;
 
@@ -76,7 +79,7 @@ QString ImageProcessing::extractCaptchaImage(const QString &path)
     cv::Rect crop(58 , 473, 715, 216);
     cv::Mat rez = src(crop);
 
-    QString captImgPath = (QDir::currentPath() + "/captcha.png");
+    QString captImgPath = (QDir::currentPath() + QString("/captcha_%1.png").arg(deviceName));
     cv::imwrite(captImgPath.toUtf8().constData(),rez);
     cv::waitKey(100);
 
