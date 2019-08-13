@@ -25,14 +25,14 @@ public:
     QString currentActivity() const;
     void setCurrentActivity(QString data);
 
+    USER_INFOR &userInfo();
+    void setUserInfo(USER_INFOR data);
+
 private:
     QString deviceName() const;
 
     AppEnums::E_EXCUTE_STEPS currentExcuteStep();
     void setCurrentExcuteStep(AppEnums::E_EXCUTE_STEPS step);
-
-    USER_INFOR &userInfo();
-    void setUserInfo(USER_INFOR data);
 
     int fbScreenId() const;
     void setFbScreenId(int screenId);
@@ -40,7 +40,6 @@ private:
     QString sendCaptcherScreen(QString screenPath);
 
     void connectSignalSlot();
-    void saveOutput();
 
     void changeDeviceInfoHandler();
     void regGmailHandler();
@@ -55,6 +54,7 @@ private:
     USER_INFOR m_userInfo;
     QTimer* m_checkNotificationTimer;
     QTimer* m_checkFBScreenTimer;
+    QTimer* m_keepFbSrcCheckerTimer;
     int m_fbScreenId;
     QList<int> m_fbScreenStack;
 
@@ -62,6 +62,7 @@ signals:
     void currentActivityChanged();
     void processFinished(int step, int exitedCode);
     void fbScreenIdChanged();
+    void missionCompleted(int exitedCode, QString deviceName);
 
 public slots:
     void doWork();
@@ -70,6 +71,7 @@ public slots:
     void onCheckNotification();
     void onCheckFBScreen();
     void onFbScreenIdChanged();
+    void onKeepFbScreenTimeout();
 };
 
 #endif // DEVICECONTROLLER_H
