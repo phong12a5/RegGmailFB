@@ -1,6 +1,6 @@
 #include "ADBCommand.h"
 
-QString ADBCommand::adb_command(QString cmd, QString deviceName)
+QString ADBCommand::adb_command(QString cmd, QString deviceName, int timeout)
 {
     QProcess process;
     if(cmd == ""){
@@ -8,7 +8,7 @@ QString ADBCommand::adb_command(QString cmd, QString deviceName)
     }else{
         process.start(QString("adb -s %1 shell %2").arg(deviceName).arg(cmd));
     }
-    process.waitForFinished(-1);
+    process.waitForFinished(timeout);
     QString error = process.readAllStandardError();
     if(error != ""){
 //        LOG << "Couldn't execute " << cmd << " : " << error;
@@ -57,6 +57,7 @@ void ADBCommand::requestShowAppDirectly(QString activity, QString deviceName)
 
 void ADBCommand::enterText(QString text, QString deviceName)
 {
+    LOG << text;
     ADBCommand::adb_command(QString("input text %1").arg(text),deviceName);
 }
 
@@ -92,23 +93,19 @@ void ADBCommand::killSpecificApp(QString packageName,QString deviceName)
 
 void ADBCommand::tapScreen(QPoint point, QString deviceName)
 {
-    LOG << "Tapping << " << point;
     ADBCommand::adb_command(QString("input tap %1 %2").arg(point.x()).arg(point.y()),deviceName);
 }
 
 bool ADBCommand::findAndClick(QString iconImage, QString deviceName)
 {
+    LOG;
     cv::Mat screenImg = cv::imread(ADBCommand::screenShot(deviceName).toUtf8().constData(),1);
-    while (screenImg.empty()){
-        screenImg = cv::imread(ADBCommand::screenShot(deviceName).toUtf8().constData(),1);
-    }
-
     cv::Mat iconMat = cv::imread(iconImage.toUtf8().constData(),1);
-    while (iconMat.empty()){
-        iconMat = cv::imread(iconImage.toUtf8().constData(),1);
-    }
 
     QPoint point = ImageProcessing::findImageOnImage(iconMat,screenImg);
+    screenImg.release();
+    iconMat.release();
+
     if(!point.isNull()){
         ADBCommand::tapScreen(point,deviceName);
         return true;
@@ -177,10 +174,16 @@ QString ADBCommand::readNotificationData(QString deviceName)
 
 void ADBCommand::installPackage(QString apkPath, QString deviceName)
 {
-    LOG << ADBCommand::adb_command(QString("pm install %1").arg(apkPath),deviceName);
+    LOG << ADBCommand::adb_command(QString("pm install %1").arg(apkPath),deviceName,-1);
 }
 
 void ADBCommand::uninstallPackage(QString packageName, QString deviceName)
 {
     ADBCommand::adb_command(QString("pm uninstall %1").arg(packageName),deviceName);
+}
+
+void ADBCommand::requestSyncAccount(QString deviceName)
+{
+    LOG << "Sync google account";
+    ADBCommand::adb_command("requestsync",deviceName);
 }

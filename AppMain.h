@@ -3,8 +3,8 @@
 
 #include <QObject>
 #include "AppDefines.h"
-#include <QQmlContext>
-#include <QQuickView>
+//#include <QQmlContext>
+//#include <QQuickView>
 //#include "AppEnums.h"
 #include "AppDefines.h"
 //#include "Controller/RegMailController.h"
@@ -17,7 +17,6 @@
 //#include <QThread>
 //#include <QMutex>
 //#include "Controller/ThreadController.h"
-#include "Processing/CheckCurrSrcWorker.h"
 #include "Controller/DeviceController.h"
 #include <QThread>
 #ifdef USE_OPENCV
@@ -35,7 +34,7 @@ class AppMain : public QObject
 
 private:
     explicit AppMain(QObject *parent = nullptr);
-
+    ~AppMain();
 public:
     static AppMain *instance();
     void initApplication();
@@ -66,12 +65,9 @@ private:
 
 signals:
     void oparate();
-    void startCheckActivity();
     void deviceListChanged();
-//    void processFinished(int stepId, int exitCode);
 
 public slots:
-    void onUpdateCurrentActOnDevices(QStringList activities);
     void onMissionCompleted(int exitCode, QString deviceName);
 
 };

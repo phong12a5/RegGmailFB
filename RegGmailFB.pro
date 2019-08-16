@@ -1,8 +1,13 @@
-QT += quick
-QT += testlib
-QT += gui
+#QT += quick
+#QT += testlib
 
-CONFIG += c++11
+#CONFIG += c++11
+
+#QT -= gui
+QT += gui
+QT += network testlib
+CONFIG += c++11 console
+CONFIG -= app_bundle
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
@@ -30,7 +35,7 @@ HEADERS += \
 #    Controller/Base/RegControllerBase.h \
 #    Base/BaseControllertroller.h \
     Controller/DeviceController.h \
-    Processing/CheckCurrSrcWorker.h
+    Processing/CheckFbScreenWorker.h
 
 SOURCES += \
         main.cpp \
@@ -45,7 +50,7 @@ SOURCES += \
 #    Controller/Base/RegControllerBase.cpp \
 #    Base/BaseController.cpp \
     Controller/DeviceController.cpp \
-    Processing/CheckCurrSrcWorker.cpp
+    Processing/CheckFbScreenWorker.cpp
 
 RESOURCES +=
 
@@ -60,19 +65,18 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-RESOURCES += qml.qrc
+#RESOURCES += qml.qrc
 
 
-INCLUDEPATH += "$$_PRO_FILE_PWD_/../OpenCV-Library/install/include"
+INCLUDEPATH += "$$_PRO_FILE_PWD_/../OpenCV-Library/include"
 
-LIBS += \
-    -L"$$_PRO_FILE_PWD_/../OpenCV-Library/install/x86/mingw/lib"\
-    -lopencv_core410        \
-    -lopencv_highgui410     \
-    -lopencv_imgcodecs410   \
-    -lopencv_imgproc410     \
-    -lopencv_features2d410  \
-    -lopencv_calib3d410
+LIBS += -L"$$_PRO_FILE_PWD_/../OpenCV-Library/x64/mingw/lib"\
+        -lopencv_core411        \
+        -lopencv_highgui411     \
+        -lopencv_imgcodecs411   \
+        -lopencv_imgproc411     \
+        -lopencv_features2d411  \
+        -lopencv_calib3d411
 
 
 

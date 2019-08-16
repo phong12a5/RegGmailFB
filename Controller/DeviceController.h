@@ -7,6 +7,8 @@
 #include <QString>
 #include <Processing/ADBCommand.h>
 #include "Processing/HttpRequestController.h"
+#include "Processing/CheckFbScreenWorker.h"
+#include <QThread>
 
 #ifdef USE_OPENCV
 #include <opencv2/core/core.hpp>
@@ -55,23 +57,34 @@ private:
     QTimer* m_checkNotificationTimer;
     QTimer* m_checkFBScreenTimer;
     QTimer* m_keepFbSrcCheckerTimer;
+    QTimer* m_waitForSyncTimer;
+
+    QThread* m_checkFbSCreenThread;
+    CheckFbScreenWorker* m_checkFbScreenWorker;
     int m_fbScreenId;
-    QList<int> m_fbScreenStack;
 
 signals:
     void currentActivityChanged();
     void processFinished(int step, int exitedCode);
-    void fbScreenIdChanged();
+    void fbScreenIdChanged(int screenId);
     void missionCompleted(int exitedCode, QString deviceName);
+    void startCheckFbScreen();
+    void stopCheckFbScreen();
+    void operate();
 
 public slots:
     void doWork();
-    void onCurrentActivityChanged();
-    void onProcessFinished(int step, int exitedCode);
     void onCheckNotification();
-    void onCheckFBScreen();
-    void onFbScreenIdChanged();
-    void onKeepFbScreenTimeout();
+    void onProcessFinished(int step, int exitedCode);
+
+    void onCurrentActivityChanged();
+    void onUpdateCurrentActivity(QString activity);
+
+    void onFbScreenIdChanged(int screenId);
+    void onUpdateFbScreen(int screenId);
+    void onCouldNotDectectScreen();
+
+    void onWaitForSyncTimeout();
 };
 
 #endif // DEVICECONTROLLER_H

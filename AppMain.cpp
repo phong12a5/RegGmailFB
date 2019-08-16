@@ -1,4 +1,5 @@
 #include "AppMain.h"
+#include "QFile"
 
 AppMain* AppMain::m_instance = nullptr;
 #include <QMutex>
@@ -12,6 +13,14 @@ AppMain::AppMain(QObject *parent) : QObject(parent)
     m_lastNameList.clear();
     m_firstNameList.clear();
     m_middleNameList.clear();
+}
+
+AppMain::~AppMain()
+{
+    for(int i =0; i < m_matchThreadList.length(); i++){
+        m_matchThreadList.at(i)->quit();
+        m_matchThreadList.at(i)->wait();
+    }
 }
 
 AppMain *AppMain::instance()
@@ -56,68 +65,47 @@ USER_INFOR AppMain::generateUserInfo()
 
     data.firstName = m_firstNameList.at(rand() % (m_firstNameList.length()));
     data.lastName = m_lastNameList.at(rand() % (m_lastNameList.length()));
-//    data.middleName = m_middleNameList.at(rand() % (m_middleNameList.length()));
+    data.middleName = m_middleNameList.at(rand() % (m_middleNameList.length()));
 
     data.userName = data.firstName + data.lastName +  QString::number(rand() % 1000000000 + 3000000);
-    data.sex = data.middleName == "Thi"? "F" : "M";
+    data.sex = data.middleName == (rand() % 2) == 1? "F" : "M";
     data.captcha = "";
+    QStringList part1 = QStringList() << data.firstName << data.lastName;
+    QStringList part2 = QStringList() << data.firstName << data.lastName;
+    QStringList part3 = QStringList() << "@";//  << "!" << "#" << "$";
+    QStringList part4 = QStringList() << QString("0" + QString::number(data.bodDate)).right(2) + QString("0" + QString::number(data.bodMonth)).right(2)
+                                      << QString("0" + QString::number(data.bodMonth)).right(2) + QString("0" + QString::number(data.bodYear)).right(4);
 
-    QString adcString = "abcdefghijklmnopqrstuvwxyz";
+    QString type0 = part1.at(rand()%part1.length()) +
+            part2.at(rand()%part2.length()).toLower() +
+            part3.at(rand()%part3.length()) +
+            part4.at(rand()%part4.length());
 
-    data.gmailPassword = QString(adcString.at(rand()%adcString.length()).toUpper()) +\
-            adcString.at(rand()%adcString.length()) +
-            adcString.at(rand()%adcString.length()) +
-            adcString.at(rand()%adcString.length()) +
-            QString::number(rand()%10) +
-            QString::number(rand()%10) +
-            QString::number(rand()%10) +
-            QString::number(rand()%10) +
-            QString::number(rand()%10);
+    QString type1 = part1.at(rand()%part1.length()) +
+            part2.at(rand()%part2.length()).toLower() +
+            part4.at(rand()%part4.length()) +
+            part3.at(rand()%part3.length());
 
-    data.fbPassword = data.gmailPassword;
+    data.fbPassword = (rand() % 2) == 1? type1 : type0;
+    data.gmailPassword = data.fbPassword;
+
     LOG << QString("Info: %1 | %2 | %3 | %4").arg(data.firstName).arg(data.lastName).arg(data.userName).arg(data.fbPassword);
     return data;
 }
 
-QString AppMain::getMatchingImg2ScreenId(int screenID)
-{
-    switch (screenID) {
-    case AppEnums::E_FBLITE_SCREEN_ID_LOGIN:
-        return CREATE_NEW_FBACC_ICON;
-    case AppEnums::E_FBLITE_SCREEN_ID_JOIN_FB:
-        return JOIN_FB_TEXT;
-    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_NAME:
-        return WHAT_YOUR_NAME_TEXT;
-    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_MOBILE_NUM:
-        return ENTER_MOBILE_NUM_TEXT;
-    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_EMAIL_ADDRESS:
-        return ENTER_YOUR_EMAIL;
-    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_BIRTHDAY:
-        return WHAT_YOUR_BIRTHDAY;
-    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_GENDER:
-        return WHAT_YOUR_GENDER;
-    case AppEnums::E_FBLITE_SCREEN_ID_ENTER_PASSWORD:
-        return CREATE_PASS_SCREEN;
-    case AppEnums::E_FBLITE_SCREEN_ID_SAVE_LOGIN_INFO:
-        return SAVE_LOGIN_TEXT;
-    case AppEnums::E_FBLITE_SCREEN_ID_WELCOME_SCREEN:
-        return WELCOME_SCREEN;
-    default:
-        return "";
-    }
-}
+
 
 void AppMain::startProgram()
 {
     LOG;
     emit this->oparate();
-    emit this->startCheckActivity();
 }
 
 void AppMain::closeProgram()
 {
     LOG;
-    QCoreApplication::quit();
+//    QCoreApplication::quit();
+    qApp->exit();
 }
 
 void AppMain::initApplication()
@@ -145,33 +133,42 @@ void AppMain::initApplication()
         m_matchThreadList << _thread;
         _thread->start();
     }
-
-    /* Creating new thread for updating current activity to devices */
-    CheckCurrSrcWorker* _ctrlPtr = new CheckCurrSrcWorker();
-    QThread* _scheckSrcThread = new QThread(this);
-
-    _ctrlPtr->moveToThread(_scheckSrcThread);
-    QObject::connect(this,&AppMain::startCheckActivity,_ctrlPtr,&CheckCurrSrcWorker::doWork);
-    QObject::connect(_scheckSrcThread, &QThread::finished, _ctrlPtr, &QObject::deleteLater);
-    QObject::connect(_ctrlPtr, &CheckCurrSrcWorker::updateCurrentActOnDevices, this, &AppMain::onUpdateCurrentActOnDevices);
-    _scheckSrcThread->start();
 }
 
 void AppMain::loadUserInfo()
 {
-    m_lastNameList << "Tran" << "Dang" << "Hoang" << "Nguyen" << "Vu" << "Cao" << "Phung" << "Le" << "Dao" << "Chau" << "Que" << "Vo";
-    m_firstNameList << "Trang" << "Chau" << "Thi" << "Ba" << "Hoang" << "Tung" << "Thi" << "Thi" << "Khanh" << "Ngoc" << "Dinh" << "Thanh";
-}
 
-void AppMain::onUpdateCurrentActOnDevices(QStringList activities)
-{
-    if(activities.length() == this->deviceList().length()){
-        for (int i = 0; i < activities.length(); ++i) {
-            m_deviceCtrlList.at(i)->setCurrentActivity(activities.at(i));
-        }
-    }else{
-        LOG << "Not matching!";
+    QFile firstNameFile(FIRSTNAME_FILE);
+    if (!firstNameFile.open(QIODevice::ReadOnly | QIODevice::Text)){
+        LOG << "[RegMailController]" << "Couldn't read first name file";
+        return;
     }
+
+    QFile lastNameFile(LASTNAME_FILE);
+    if (!lastNameFile.open(QIODevice::ReadOnly | QIODevice::Text)){
+        LOG << "[RegMailController]" << "Couldn't read last name file";
+        return;
+    }
+
+    while (!firstNameFile.atEnd()) {
+        QString tmp = firstNameFile.readLine().simplified();
+        m_firstNameList.append(tmp);
+    }
+
+    while (!lastNameFile.atEnd()) {
+        QString tmp = lastNameFile.readLine().simplified();
+        m_lastNameList.append(tmp);
+    }
+
+    m_middleNameList = m_lastNameList;
+
+    if(m_firstNameList.isEmpty() || m_firstNameList.isEmpty()){
+        LOG << "Cann't start without user data";
+        this->closeProgram();
+    }
+
+//    LOG << "m_lastNameList: " << m_lastNameList;
+//    LOG << "firstNameFile: " << firstNameFile;
 }
 
 void AppMain::onMissionCompleted(int exitCode, QString deviceName)

@@ -1,5 +1,5 @@
-#include <QGuiApplication>
-#include <QQmlApplicationEngine>
+#include <QCoreApplication>
+//#include <QQmlApplicationEngine>
 #include "AppMain.h"
 
 int main(int argc, char *argv[])
@@ -9,19 +9,20 @@ int main(int argc, char *argv[])
 
     srand(time(nullptr));
 
-    QGuiApplication app(argc, argv);
-    QQmlApplicationEngine engine;
+    QCoreApplication app(argc, argv);
+//    QQmlApplicationEngine engine;
 
 //    ADBCommand::enterText("","CB5A23DFBZ");
 //    LOG << ADBCommand::screenShot("CB5A23DFBZ","screen.png");
 
     AppMain::instance()->initApplication();
-    engine.rootContext()->setContextProperty("AppMain",AppMain::instance());
+    AppMain::instance()->startProgram();
+//    engine.rootContext()->setContextProperty("AppMain",AppMain::instance());
 
-    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
-    if (engine.rootObjects().isEmpty()){
-        LOG << "rootObject is NULL";
-    }
+//    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
+//    if (engine.rootObjects().isEmpty()){
+//        LOG << "rootObject is NULL";
+//    }
 
     return app.exec();
 }

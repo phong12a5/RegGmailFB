@@ -129,6 +129,9 @@ typedef struct birthday_struct{
 #define RECOVERY_EMAIL_FIELD    "recovery_email"
 #define NAME_LANG_FIELD         "name_language"
 
+#define FIRSTNAME_FILE          "firstname.txt"
+#define LASTNAME_FILE           "lastname.txt"
+
 #define EXITCODE_FALSE          1
 #define EXITCODE_TRUE           0
 

@@ -10,21 +10,11 @@ DeviceController::DeviceController(QString deviceName):
     m_currentExcuteStep(AppEnums::E_EXCUTE_CHANGE_INFO),
     m_checkNotificationTimer(nullptr),
     m_keepFbSrcCheckerTimer(nullptr),
+    m_checkFbSCreenThread(nullptr),
+    m_checkFbScreenWorker(nullptr),
     m_fbScreenId(-1)
 {
-    m_fbScreenStack.clear();
-    m_fbScreenStack << AppEnums::E_FBLITE_SCREEN_ID_LOGIN\
-                    << AppEnums::E_FBLITE_SCREEN_ID_JOIN_FB\
-                    << AppEnums::E_FBLITE_SCREEN_ID_ENTER_NAME\
-                    << AppEnums::E_FBLITE_SCREEN_ID_ENTER_MOBILE_NUM\
-                    << AppEnums::E_FBLITE_SCREEN_ID_ENTER_EMAIL_ADDRESS\
-                    << AppEnums::E_FBLITE_SCREEN_ID_ENTER_BIRTHDAY\
-                    << AppEnums::E_FBLITE_SCREEN_ID_ENTER_GENDER\
-                    << AppEnums::E_FBLITE_SCREEN_ID_ENTER_PASSWORD\
-                    << AppEnums::E_FBLITE_SCREEN_ID_SAVE_LOGIN_INFO\
-                    << AppEnums::E_FBLITE_SCREEN_ID_WELCOME_SCREEN;
-
-                       this->connectSignalSlot();
+    this->connectSignalSlot();
 }
 
 DeviceController::~DeviceController()
@@ -60,9 +50,10 @@ void DeviceController::setCurrentExcuteStep(AppEnums::E_EXCUTE_STEPS step)
     if(m_currentExcuteStep != step){
         m_currentExcuteStep = step;
         if(m_currentExcuteStep != AppEnums::E_EXCUTE_REG_FACBOOK){
-            m_checkFBScreenTimer->stop();
+            emit stopCheckFbScreen();
         }else{
-            m_checkFBScreenTimer->start();
+            this->setFbScreenId(-1);
+            emit startCheckFbScreen();
         }
     }
 }
@@ -85,25 +76,15 @@ int DeviceController::fbScreenId() const
 void DeviceController::setFbScreenId(int screenId)
 {
     if(m_fbScreenId != screenId){
-        LOG << screenId;
         m_fbScreenId = screenId;
-
-        if(m_keepFbSrcCheckerTimer == nullptr){
-            m_keepFbSrcCheckerTimer = new QTimer(this);
-            m_keepFbSrcCheckerTimer->setSingleShot(false);
-            m_keepFbSrcCheckerTimer->setInterval(KEEP_FB_SCREEN_TIMEOUT);
-            connect(m_keepFbSrcCheckerTimer, SIGNAL(timeout()), this, SLOT(onKeepFbScreenTimeout()));
-        }
-        m_keepFbSrcCheckerTimer->stop();
-        m_keepFbSrcCheckerTimer->start();
-
-        emit fbScreenIdChanged();
+        emit fbScreenIdChanged(m_fbScreenId);
     }
 }
 
 QString DeviceController::sendCaptcherScreen(QString screenPath)
 {
     QString captchaImg = ImageProcessing::extractCaptchaImage(screenPath,this->deviceName());
+    LOG <<  captchaImg;
     delay(1000);
     if(captchaImg != QString("")){
         HttpRequestController httpRq;
@@ -116,13 +97,14 @@ QString DeviceController::sendCaptcherScreen(QString screenPath)
 void DeviceController::connectSignalSlot()
 {
     connect(this, SIGNAL(currentActivityChanged()),this, SLOT(onCurrentActivityChanged()));
+    connect(this, SIGNAL(fbScreenIdChanged(int)),this, SLOT(onFbScreenIdChanged(int)));
     connect(this, SIGNAL(processFinished(int,int)),this, SLOT(onProcessFinished(int,int)));
-    connect(this, SIGNAL(fbScreenIdChanged()),this, SLOT(onFbScreenIdChanged()));
 }
 
 void DeviceController::changeDeviceInfoHandler()
 {
     LOG;
+    delay(200);
     if(this->currentActivity() != XGAME_SCREEN){
         ADBCommand::requestShowApp(XGAME_PKG,XGAME_ACTIVITYMAIN,this->deviceName());
     }else{
@@ -132,37 +114,38 @@ void DeviceController::changeDeviceInfoHandler()
         delay(10000);
         ADBCommand::rebootDevice(this->deviceName());
         delay(2000);
-        this->setCurrentExcuteStep(AppEnums::E_EXCUTE_REG_GMAIL);
+        emit processFinished(this->currentExcuteStep(), EXITCODE_TRUE);
     }
 }
 
 void DeviceController::regGmailHandler()
 {
-    LOG << this->currentActivity();
     if(this->currentActivity() == HOME_SCREEN)
     {
         if(this->userInfo().captcha == ""){
             ADBCommand::requestShowAppDirectly(ACCOUNT_SETTING_ACT, this->deviceName());
         }else{
-            delay(60000);
-            LOG << "Reg Gmail completed";
-            emit processFinished(this->currentExcuteStep(),EXITCODE_TRUE);
+            ADBCommand::requestSyncAccount(this->deviceName());
+                m_waitForSyncTimer->start();
         }
     }else if(this->currentActivity() == ACCOUNT_SETTING_SCREEN){
-        LOG << "Click google account Icon";
-        while(!ADBCommand::findAndClick(GOOGLE_ACCOUNT_ICON,this->deviceName()));
+        if(this->userInfo().captcha != ""){
+            ADBCommand::requestSyncAccount(this->deviceName());
+                m_waitForSyncTimer->start();
+        }else{
+            LOG << "Click google account Icon";
+            delay(1000);
+            ADBCommand::findAndClick(GOOGLE_ACCOUNT_ICON,this->deviceName());
+        }
     }else if(this->currentActivity() == ADD_A_GGACCOUNT_SCREEN){
         LOG << "Click add new account Icon";
         ADBCommand::tapScreen(QPoint(541,1658),this->deviceName());
     }else if(this->currentActivity() == INPUT_YOURNAME_SCREEN){
-        LOG << "Entering first name: " << this->userInfo().firstName;
         ADBCommand::enterText(this->userInfo().firstName,this->deviceName());
         ADBCommand::pressTap(this->deviceName());
-        LOG << "Entering first name: " << this->userInfo().lastName;
         ADBCommand::enterText(this->userInfo().lastName,this->deviceName());
         ADBCommand::enterKeyBoard(this->deviceName());
     }else if(this->currentActivity() == INPUT_USERNAME_SCREEN){
-        LOG << "Entering username: " << this->userInfo().userName;
         ADBCommand::enterText(this->userInfo().userName,this->deviceName());
         ADBCommand::enterKeyBoard(this->deviceName());
     }else if(this->currentActivity() == INPUT_PASSWORD_SCREEN){
@@ -183,13 +166,14 @@ void DeviceController::regGmailHandler()
     }else if(this->currentActivity() == AUTHENTICATING_SCREEN){
         LOG << "Getting captcher";
         this->userInfo().captcha = this->sendCaptcherScreen(ADBCommand::screenShot(this->deviceName()));
-
-        while (this->userInfo().captcha == "") {
-            this->userInfo().captcha = this->sendCaptcherScreen(ADBCommand::screenShot(this->deviceName()));
+        if(this->userInfo().captcha != "" && this->userInfo().captcha != "ERROR"){
+            ADBCommand::enterText(this->userInfo().captcha,this->deviceName());
+            ADBCommand::enterKeyBoard(this->deviceName());
+        }else{
+            this->userInfo().captcha = "ERROR";
         }
-
-        ADBCommand::enterText(this->userInfo().captcha,this->deviceName());
-        ADBCommand::enterKeyBoard(this->deviceName());
+        delay(1000);
+        this->setCurrentActivity(NULL_FOCUSED_SCREEN);
     }else if(this->currentActivity() == SYNC_INTRO_SCREEN){
         delay(500);
         LOG << "Click Next Icon";
@@ -207,34 +191,16 @@ void DeviceController::regGmailHandler()
         LOG << "[RegMailController]" << "Do nothing when is creating acc task";
     }else if(this->currentActivity() == INVALID_USERNAME){
         emit processFinished(this->currentExcuteStep(),EXITCODE_FALSE);
-    }else{
-        if(this->userInfo().captcha != ""){
-            delay(60000);
-            LOG << "Reg Gmail completed";
-            emit processFinished(this->currentExcuteStep(),EXITCODE_TRUE);
-        }
     }
 }
 
 void DeviceController::regFbHandler()
 {
-/*    if(this->currentActivity() == TURNON_PLAY_PROTECT){
-            delay(500);
-            LOG << "Closing turn on play protect popup";
-            ADBCommand::tapScreen(QPoint(841,1202),this->deviceName());
-            while(!ADBCommand::adb_command(QString("pm list packages | grep %1").arg(FBLITE_PKG),this->deviceName()).contains(FBLITE_PKG)){
-                delay(1000);
-            }
-            ADBCommand::requestShowApp(FBLITE_PKG,FBLITE_ACTIVITYMAIN,this->deviceName());
-        }
-    else*/ if(this->currentActivity() != FACEBOOK_LITE_SCREEN)
+    LOG;
+    if(this->currentActivity() != FACEBOOK_LITE_SCREEN)
     {
-//        QProcess process;
-//        process.start(QString("adb -s %1 shell pm install %2").arg(this->deviceName()).arg(FBLITE_APK_PATH));
         ADBCommand::installPackage(FBLITE_APK_PATH,this->deviceName());
         ADBCommand::requestShowApp(FBLITE_PKG,FBLITE_ACTIVITYMAIN,this->deviceName());
-    }else {
-
     }
 }
 
@@ -317,25 +283,42 @@ void DeviceController::pressBoDKeyboard(int number)
 
 void DeviceController::doWork()
 {
-    LOG << "Starting " << this->deviceName();
-    m_checkFBScreenTimer = new QTimer(this);
-    m_checkFBScreenTimer->setInterval(2000);
-    m_checkFBScreenTimer->setSingleShot(false);
-    connect(m_checkFBScreenTimer, SIGNAL(timeout()),this, SLOT(onCheckFBScreen()));
-
     m_checkNotificationTimer = new QTimer(this);
     m_checkNotificationTimer->setInterval(2000);
     m_checkNotificationTimer->setSingleShot(false);
     connect(m_checkNotificationTimer, SIGNAL(timeout()),this, SLOT(onCheckNotification()));
-    m_checkNotificationTimer->start();
 
-    /* For testing */
-//    this->setUserInfo(APP_MAIN->generateUserInfo());
+    m_waitForSyncTimer = new QTimer(this);
+    m_waitForSyncTimer->setInterval(60000);
+    m_waitForSyncTimer->setSingleShot(true);
+    connect(m_waitForSyncTimer, SIGNAL(timeout()),this, SLOT(onWaitForSyncTimeout()));
+
+    m_checkFbSCreenThread = new QThread(this);
+    m_checkFbScreenWorker = new CheckFbScreenWorker(this->deviceName());
+    m_checkFbScreenWorker->moveToThread(m_checkFbSCreenThread);
+    QObject::connect(this,&DeviceController::operate,m_checkFbScreenWorker,&CheckFbScreenWorker::doWork);
+    QObject::connect(this,&DeviceController::startCheckFbScreen,m_checkFbScreenWorker,&CheckFbScreenWorker::onStartCheckFbScreen);
+    QObject::connect(this,&DeviceController::stopCheckFbScreen,m_checkFbScreenWorker,&CheckFbScreenWorker::onStopCheckFbScreen);
+    QObject::connect(this,&DeviceController::fbScreenIdChanged,m_checkFbScreenWorker,&CheckFbScreenWorker::onSyncFbScreenId);
+    QObject::connect(m_checkFbSCreenThread, &QThread::finished, m_checkFbScreenWorker, &QObject::deleteLater);
+    QObject::connect(m_checkFbScreenWorker, &CheckFbScreenWorker::updateFbScreen, this, &DeviceController::onUpdateFbScreen);
+    QObject::connect(m_checkFbScreenWorker, &CheckFbScreenWorker::updateCurrentActivity, this, &DeviceController::onUpdateCurrentActivity);
+    QObject::connect(m_checkFbScreenWorker, &CheckFbScreenWorker::couldNotDectectScreen, this, &DeviceController::onCouldNotDectectScreen);
+
+    m_checkNotificationTimer->start();
+    m_checkFbSCreenThread->start();
+
+    emit operate();
+}
+
+void DeviceController::onUpdateCurrentActivity(QString activity)
+{
+    this->setCurrentActivity(activity);
 }
 
 void DeviceController::onCurrentActivityChanged()
 {
-    LOG << m_deviceName << " : " << this->currentActivity();
+    LOG << m_deviceName << " : " << this->currentActivity() << " -- step: " << this->currentExcuteStep();
 
     if(this->currentActivity() == LOCK_SCREEN){
         ADBCommand::wakeUpScreen(this->deviceName());
@@ -360,6 +343,7 @@ void DeviceController::onCurrentActivityChanged()
     }
 }
 
+
 void DeviceController::onProcessFinished(int step, int exitedCode)
 {
     if(exitedCode == EXITCODE_FALSE){
@@ -383,12 +367,14 @@ void DeviceController::onCheckNotification()
 {
     QString notificationData = ADBCommand::readNotificationData(this->deviceName());
     if(this->currentExcuteStep() == AppEnums::E_EXCUTE_REG_GMAIL){
-        /*if(notificationData.contains("android.text=Finish setting up your new Google Account")){
+        if(notificationData.contains("Finish setting up your new Google Account")){
             LOG << "Reg Gmail completed";
+            m_waitForSyncTimer->stop();
             emit processFinished(this->currentExcuteStep(),EXITCODE_TRUE);
-        }else */if(notificationData.contains("Account Action Required"))
+        }else if(notificationData.contains("Account Action Required"))
         {
             LOG << "Reg Gmail failure";
+            m_waitForSyncTimer->stop();
             emit processFinished(this->currentExcuteStep(),EXITCODE_FALSE);
         }
     }else if(this->currentExcuteStep() == AppEnums::E_EXCUTE_REG_FACBOOK){
@@ -407,33 +393,29 @@ void DeviceController::onCheckNotification()
     }
 }
 
-void DeviceController::onCheckFBScreen()
+
+void DeviceController::onUpdateFbScreen(int screenId)
 {
-    int need2CheckedSCreen;
-    if(!m_fbScreenStack.contains(this->fbScreenId())){
-        need2CheckedSCreen = m_fbScreenStack.first();
-    }else if(this->fbScreenId() == m_fbScreenStack.last() ){
-        // Do nothing
-    }else{
-        need2CheckedSCreen = m_fbScreenStack.at(m_fbScreenStack.indexOf(this->fbScreenId()) + 1);
-    }
+    this->setFbScreenId(screenId);
+}
 
-    cv::Mat screenImage = cv::imread(ADBCommand::screenShot(this->deviceName()).toUtf8().constData(),1);
-    while (screenImage.empty()){
-        screenImage = cv::imread(ADBCommand::screenShot(this->deviceName()).toUtf8().constData(),1);
-    }
-
-    cv::Mat screenMat = cv::imread(APP_MAIN->getMatchingImg2ScreenId(need2CheckedSCreen).toUtf8().constData());
-    QPoint point = ImageProcessing::findImageOnImage(screenMat,screenImage);
-    if(!point.isNull()){
-        this->setFbScreenId(need2CheckedSCreen);
+void DeviceController::onCouldNotDectectScreen()
+{
+    LOG;
+    if(this->currentExcuteStep() == AppEnums::E_EXCUTE_REG_FACBOOK){
+        emit processFinished(this->currentExcuteStep(),EXITCODE_FALSE);
     }
 }
 
-void DeviceController::onFbScreenIdChanged()
+void DeviceController::onWaitForSyncTimeout()
 {
-    LOG << this->fbScreenId();
-    switch (this->fbScreenId()) {
+    LOG << "Syncing waiting timeout";
+    emit processFinished(this->currentExcuteStep(),EXITCODE_TRUE);
+}
+
+void DeviceController::onFbScreenIdChanged(int screenId){
+    LOG << screenId;
+    switch (screenId) {
     case AppEnums::E_FBLITE_SCREEN_ID_LOGIN:
         LOG << ADBCommand::findAndClick(CREATE_NEW_FBACC_ICON,this->deviceName());
         break;
@@ -470,10 +452,13 @@ void DeviceController::onFbScreenIdChanged()
         LOG << "[RegFBController]";
         // CLICK MONTH FIELD
         pressBoDKeyboard(this->userInfo().bodMonth);
+        delay(100);
         // CLICK DAY FIELD
         pressBoDKeyboard(this->userInfo().bodDate);
+        delay(100);
         // CLICK YEAR FIELD
         pressBoDKeyboard(this->userInfo().bodYear);
+        delay(100);
 
         // Next
         ADBCommand::findAndClick(NEXT_BUTTON,this->deviceName());
@@ -501,13 +486,5 @@ void DeviceController::onFbScreenIdChanged()
         break;
     default:
         break;
-    }
-}
-
-void DeviceController::onKeepFbScreenTimeout()
-{
-    if(this->currentExcuteStep() == AppEnums::E_EXCUTE_REG_FACBOOK){
-        LOG << "Reg Facebook false";
-        emit processFinished(this->currentExcuteStep(),EXITCODE_FALSE);
     }
 }

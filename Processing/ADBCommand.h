@@ -13,7 +13,7 @@ class ADBCommand : public QObject
 
 public:
 
-    static QString adb_command(QString cmd, QString deviceName = "");
+    static QString adb_command(QString cmd, QString deviceName = "", int timeout = 3000);
     static QString screenShot( QString deviceName, QString fileName = "screen_%1.png",QString path = QDir::currentPath());
     static void tapScreen(QPoint point, QString deviceName);
     static void swipeScreen(QPoint sourcePoint, QPoint desPoint, QString deviceName);
@@ -37,6 +37,7 @@ public:
     static QString readNotificationData(QString deviceName);
     static void installPackage(QString apkPath,QString deviceName);
     static void uninstallPackage(QString packageName, QString deviceName);
+    static void requestSyncAccount(QString deviceName);
 };
 
 #endif // ADBCOMMAND_H
