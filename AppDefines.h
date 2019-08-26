@@ -6,6 +6,10 @@
 #include <AppEnums.h>
 #include <QDir>
 
+#ifdef Q_OS_WIN
+#include <windows.h> // for Sleep
+#endif
+
 typedef struct user_infor{
     QString firstName;
     QString lastName;
@@ -83,7 +87,7 @@ typedef struct birthday_struct{
 #define FBLITE_PKG              "com.facebook.lite"
 #define FBLITE_ACTIVITYMAIN     ".MainActivity"
 #define FBLITE_APK_PATH         "/storage/emulated/legacy/Download/com.facebook.lite.apk"
-
+#define FBLITE_PKG_NAME         "com.facebook.lite.apk"
 
 //HOME activities
 #define HOME_SCREEN             "com.sonyericsson.home/com.sonymobile.home.HomeActivity"

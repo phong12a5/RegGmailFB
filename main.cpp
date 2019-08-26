@@ -12,8 +12,7 @@ int main(int argc, char *argv[])
     QCoreApplication app(argc, argv);
 //    QQmlApplicationEngine engine;
 
-//    ADBCommand::enterText("","CB5A23DFBZ");
-//    LOG << ADBCommand::screenShot("CB5A23DFBZ","screen.png");
+//    LOG << ADBCommand::screenShot("CB5A23BXPR");
 
     AppMain::instance()->initApplication();
     AppMain::instance()->startProgram();

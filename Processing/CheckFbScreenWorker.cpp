@@ -78,7 +78,9 @@ void CheckFbScreenWorker::doWork()
 
 void CheckFbScreenWorker::onUpdateCurrentActivity()
 {
-    emit updateCurrentActivity(ADBCommand::currentActivity(m_deviceName));
+    QString currentActivity = ADBCommand::currentActivity(m_deviceName);
+    if(currentActivity != NULL_FOCUSED_SCREEN)
+        emit updateCurrentActivity(currentActivity);
 }
 
 void CheckFbScreenWorker::onUpdateCurrentFbScreen()

@@ -133,9 +133,11 @@ void DeviceController::regGmailHandler()
             ADBCommand::requestSyncAccount(this->deviceName());
                 m_waitForSyncTimer->start();
         }else{
-            LOG << "Click google account Icon";
-            delay(1000);
-            ADBCommand::findAndClick(GOOGLE_ACCOUNT_ICON,this->deviceName());
+            delay(500);
+            LOG << "Click google account Icon!";
+            ADBCommand::swipeScreen(QPoint(500,1200),QPoint(500,500),this->deviceName());
+            delay(500);
+            ADBCommand::tapScreen(QPoint(312,904),this->deviceName());
         }
     }else if(this->currentActivity() == ADD_A_GGACCOUNT_SCREEN){
         LOG << "Click add new account Icon";
@@ -368,9 +370,9 @@ void DeviceController::onCheckNotification()
     QString notificationData = ADBCommand::readNotificationData(this->deviceName());
     if(this->currentExcuteStep() == AppEnums::E_EXCUTE_REG_GMAIL){
         if(notificationData.contains("Finish setting up your new Google Account")){
-            LOG << "Reg Gmail completed";
-            m_waitForSyncTimer->stop();
-            emit processFinished(this->currentExcuteStep(),EXITCODE_TRUE);
+//            LOG << "Reg Gmail completed";
+//            m_waitForSyncTimer->stop();
+//            emit processFinished(this->currentExcuteStep(),EXITCODE_TRUE);
         }else if(notificationData.contains("Account Action Required"))
         {
             LOG << "Reg Gmail failure";
@@ -424,10 +426,12 @@ void DeviceController::onFbScreenIdChanged(int screenId){
         break;
     case AppEnums::E_FBLITE_SCREEN_ID_ENTER_NAME:{
         ADBCommand::findAndClick(FIRSTNAME_FIELD,this->deviceName());
+        delay(200);
         ADBCommand::enterText(this->userInfo().firstName,this->deviceName());
-
+        delay(500);
         /////////////////
         ADBCommand::findAndClick(LASTNAME_FIELD,this->deviceName());
+        delay(200);
         ADBCommand::enterText(this->userInfo().lastName,this->deviceName());
 
         ///////////////

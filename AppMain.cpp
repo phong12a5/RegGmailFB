@@ -71,7 +71,7 @@ USER_INFOR AppMain::generateUserInfo()
     data.sex = data.middleName == (rand() % 2) == 1? "F" : "M";
     data.captcha = "";
     QStringList part1 = QStringList() << data.firstName << data.lastName;
-    QStringList part2 = QStringList() << data.firstName << data.lastName;
+    QStringList part2 = QStringList() << data.middleName;// << data.lastName;
     QStringList part3 = QStringList() << "@";//  << "!" << "#" << "$";
     QStringList part4 = QStringList() << QString("0" + QString::number(data.bodDate)).right(2) + QString("0" + QString::number(data.bodMonth)).right(2)
                                       << QString("0" + QString::number(data.bodMonth)).right(2) + QString("0" + QString::number(data.bodYear)).right(4);
@@ -112,11 +112,21 @@ void AppMain::initApplication()
 {
     LOG << "[AppMain]";
 
+    /* Start adb process */
+    LOG << "Starting adb process";
+    ADBCommand::adb_command("devices","",-1);
+
     /* Load user information for registering */
     this->loadUserInfo();
 
     /* Update connected devices */
     this->setDeviceList(ADBCommand::deviceList());
+
+    /* Copying apk to Devices */
+    for (int i  =0 ; i < this->deviceList().length(); i++) {
+        LOG << "Coppying apk to " << this->deviceList().at(i);
+        QProcess::execute(QString("adb -s %1 push %2 %3").arg(this->deviceList().at(i)).arg(FBLITE_PKG_NAME).arg(FBLITE_APK_PATH));
+    }
 
     /* Creating multi thread for controlling devices */
     for(int i = 0; i < this->deviceList().length(); i++){
